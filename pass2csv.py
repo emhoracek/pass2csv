@@ -104,7 +104,7 @@ class CSVExporter():
             return [group, name, password, notes]
 
 
-def main(kpx_format, gpgbinary, use_agent, pass_path):
+def main(kpx_format, gpgbinary, use_agent, pass_path, passphrase):
     """Main script entrypoint."""
 
     exporter = CSVExporter(kpx_format)
@@ -114,7 +114,7 @@ def main(kpx_format, gpgbinary, use_agent, pass_path):
     for file_path in exporter.traverse(pass_path):
         if os.path.splitext(file_path)[1] == '.gpg':
             with open(file_path, 'rb') as f:
-                data = str(gpg.decrypt_file(f))
+                data = str(gpg.decrypt_file(f, passphrase=passphrase))
                 if len(data) == 0:
                     raise ValueError("The password file is empty")
                 csv_data.append(exporter.parse(pass_path, file_path, data))
@@ -158,6 +158,13 @@ class OptionsParser(ArgumentParser):
             action='store_true',
             help="Use this option to format the CSV for KeePassXC",
             dest='kpx_format',
+        )
+
+        self.add_argument(
+            '-p', '--passphrase',
+            type=str,
+            help="Passphrase for gpg",
+            dest='passphrase',
         )
 
 
